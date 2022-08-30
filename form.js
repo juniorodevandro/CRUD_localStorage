@@ -23,12 +23,13 @@ let container = document.getElementById("container");
 
 let form = document.createElement("form");
 
+form.appendChild(createInputElement("handle", "handle", "number", true));
 form.appendChild(createInputElement("nome", "Nome", "text"));
 form.appendChild(createInputElement("rua", "Rua", "text"));
 form.appendChild(createInputElement("numero", "Número", "number"));
 form.appendChild(createComboBoxElement("regiao", "Região", rscConsts.regions));
-form.appendChild(createComboBoxElement("estado", "Estado", rscConsts.states));
-form.appendChild(createComboBoxElement("cidade", "Cidade",  rscConsts.cities));
+form.appendChild(createComboBoxElement("estado", "Estado", null));
+form.appendChild(createComboBoxElement("cidade", "Cidade", null));
 
 let labelTextNacionalidade = document.createElement("label");
 labelTextNacionalidade.setAttribute("class", "mt-3");
@@ -44,13 +45,13 @@ form.appendChild(createInputElement("dataNascimento", "Data de nascimento", "dat
 let btnSubmit = document.createElement("button");
 btnSubmit.setAttribute("class", "btn btn-success");
 btnSubmit.setAttribute("type", "submit");
-btnSubmit.setAttribute("id", "salvar");
-btnSubmit.setAttribute("onClick", "registraDados()");
+btnSubmit.setAttribute("id", "register");
+btnSubmit.addEventListener('click', createClient);
 btnSubmit.appendChild(document.createTextNode("Cadastrar"))
 
 let btnLimpar = document.createElement("button");
 btnLimpar.setAttribute("class", "btnb tn btn-light");
-btnLimpar.setAttribute("id", "limpar");
+btnLimpar.setAttribute("id", "clean");
 btnLimpar.setAttribute("onClick", "updateTela()");
 btnLimpar.setAttribute("hidden", "true");
 btnLimpar.appendChild(document.createTextNode("Limpar"))
@@ -176,6 +177,10 @@ estadoInput.addEventListener("change", () => {
         registrosGuardados.forEach(element => {
             let trow = document.createElement("tr");
 
+            let tdata0 = document.createElement("td");
+            tdata0.setAttribute("hidden", "true");            
+            tdata0.setAttribute("id", element.id)            
+
             let tdata1 = document.createElement("td");
             tdata1.appendChild(document.createTextNode(element.nome));
             
@@ -227,6 +232,7 @@ estadoInput.addEventListener("change", () => {
             tdata9.appendChild(btnEditar);            
             tdata9.appendChild(btnExcluir);            
 
+            trow.appendChild(tdata0);
             trow.appendChild(tdata1);
             trow.appendChild(tdata2);
             trow.appendChild(tdata3);
@@ -246,7 +252,7 @@ estadoInput.addEventListener("change", () => {
     
     let tableTitle = document.createElement("h1");
     tableTitle.setAttribute("class", "text-center");
-    tableTitle.appendChild(document.createTextNode("Registros Cadastrados: "));
+    tableTitle.appendChild(document.createTextNode("Registros cadastrados: "));
 
     container.appendChild(tableTitle);
     container.appendChild(tabela);

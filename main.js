@@ -1,32 +1,39 @@
     const getLocalStorage = () => JSON.parse(localStorage.getItem("registros")) ?? []
     const setLocalStorage = (dbClient) => localStorage.setItem("registros", JSON.stringify(dbClient));
     const readClient = () => getLocalStorage();
-    
-    var queryEdit = false;
 
-    const fillFields = (client) => {
-        
+    const fillFields = (client) => {        
+        document.getElementById('handle').value = client.id;
         document.getElementById('nome').value = client.nome;
         document.getElementById('rua').value = client.rua;
         document.getElementById('numero').value = client.numero;
+
         document.getElementById('regiao').value = client.regiao;
-        document.getElementById('estado').value = client.estado;
-        document.getElementById('cidade').value = client.cidade;
+        
+        let inputEstado = document.getElementById('estado');
+        createOptionSelect(inputEstado, rscConsts.states);
+        inputEstado.value = client.estado;
+
+        let inputCidade = document.getElementById('cidade');        
+        createOptionSelect(inputCidade, rscConsts.cities);
+        inputCidade.value = client.cidade;
+
         document.getElementById(client.nacionalidade == 0 ? "Brasileiro" : "Estrangeiro").checked = true;
         document.getElementById('dataNascimento').value = client.dataNascimento
     }    
 
     const editClient = (event) => {   
-        queryEdit = true;  
+        btnSubmit = document.getElementById('register') 
+        btnSubmit.innerHTML = 'Salvar';        
+        btnSubmit.removeEventListener('click', createClient);            
+        btnSubmit.addEventListener('click', updateClient);
+        document.getElementById('clean').removeAttribute('hidden')
+        
         const index = event.target.id.split('-')        
         const client = readClient()[index]
         client.index = index
         fillFields(client);        
-
-        document.getElementById('salvar').innerHTML = 'Salvar';
-        document.getElementById('limpar').removeAttribute('hidden')
     };   
-
 
     const deleteClient = (event) => {        
         const index = event.target.id.split('-')
@@ -39,17 +46,28 @@
     }     
 
     function updateTela() {
+        //-- so vai atualizar msm, sem tempo para melhorar isso por enquamto
         location.reload()
     }
 
+    function createOptionSelect(select, options) {
+        select.removeAttribute('disabled');
+        options.forEach(opt => {
+            let option = document.createElement("option");
+            option.appendChild(document.createTextNode(opt.name));
+            option.setAttribute("value", opt.id);
+            select.appendChild(option);
+        });
+    }
 
-    function createInputElement(inputId, inputLabelText, inputType) {
+    function createInputElement(inputId, inputLabelText, inputType, inputHidden = false) {
         let div = document.createElement("div");
         div.setAttribute("class", "form-group");
-    
+        
         let label = document.createElement("label");
         label.setAttribute("for", inputId);
         label.appendChild(document.createTextNode(inputLabelText));
+        label.hidden = inputHidden;
     
         let input = document.createElement("input");
         input.setAttribute("id", inputId);
@@ -58,6 +76,7 @@
         input.setAttribute("placeholder", inputLabelText);
         input.setAttribute("type", inputType);
         input.required = true;
+        input.hidden = inputHidden
     
         div.appendChild(label);
         div.appendChild(input);
@@ -79,19 +98,13 @@
         select.setAttribute("class", "form-control");
         select.required = true; 
     
+        
         if (options == rscConsts.regions) {   
             let option = document.createElement("option")
-            option.appendChild(document.createTextNode("Selecione uma opção"));
-            option.setAttribute("value", -1);
+            option.appendChild(document.createTextNode("Selecione uma região"));
+            option.setAttribute("value", -1);                        
             select.add(option);
-            options.forEach(opt => {
-                let option = document.createElement("option");
-    
-                option.appendChild(document.createTextNode(opt.name));
-                option.setAttribute("value", opt.id);
-    
-                select.appendChild(option);
-            });
+            createOptionSelect(select, options);
         } else {        
             select.setAttribute("disabled", "");
         }
@@ -122,9 +135,29 @@
         rDiv.appendChild(rLabel);
     
         return rDiv;
-    }    
+    }        
 
-    function registraDados() {
+    const updateClient = () => {
+        debugger
+        index = document.getElementById('handle').value
+        const client = {
+            id: document.getElementById('handle').value,
+            nome: document.getElementById('nome').value,
+            rua: document.getElementById('rua').value,
+            numero: document.getElementById('numero').value,    
+            regiao: document.getElementById('regiao').value,            
+            estado:  document.getElementById('estado').value,          
+            cidade: document.getElementById('cidade').value,        
+            // nacionalidade: ,
+            dataNascimento: document.getElementById('dataNascimento').value
+        };
+        debugger
+        const dbClient = readClient()
+        dbClient[index] = client
+        setLocalStorage(client)
+    }        
+
+    const createClient = () => {
         let nome = document.getElementById("nome");
         if (nome.value == '') return;
     
@@ -161,11 +194,11 @@
         }                 
     
         let dataNascimento = document.getElementById("dataNascimento");
-        if (dataNascimento.value == '') return;
+        if (dataNascimento.value == '') return;        
+
+        const dbClient = getLocalStorage();
     
-        const registrosGuardados = getLocalStorage();
-    
-        let registro = {
+        let client = {
             nome: nome.value,
             rua: rua.value,
             numero: numero.value,
@@ -174,16 +207,11 @@
             cidade: cidadeInput.value,
             nacionalidadee: nacionalidade.value,
             nasc: dataNascimento.value,
-            id: registrosGuardados.length
-        }        
-    
-        if (registrosGuardados != null) {
-            registrosGuardados.push(registro);
-            setLocalStorage(registrosGuardados);
-        } else {
-            setLocalStorage(new Array(registro));
-        }   
-        
-        alert(`Registro salvo: ${registro.id + 1}`)
-        
-    }    
+            id: dbClient.length
+        }      
+        dbClient.push(client)
+        setLocalStorage(dbClient)
+
+        alert(`Registro salvo: ${client.id + 1}`)
+        updateTela()
+    }   
